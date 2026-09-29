@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Classes{% endblock %}
+{% block content %}
+<section class="page-heading">
+  <div><p class="eyebrow">TEACHER DESK / {{ now_label|default('TODAY') }}</p><h1>Class register</h1><p class="lede">A clear record of who was here, and how each mark was made.</p></div>
+  <span class="date-stamp">LOCAL<br><strong>REGISTER</strong></span>
+</section>
+<section class="stat-strip" aria-label="Roster summary">
+  <div><span class="stat-value">{{ student_count }}</span><span class="stat-label">On roster</span></div>
+  <div><span class="stat-value">{{ opted_in_count }}</span><span class="stat-label">Face opt-ins</span></div>
+  <div><span class="stat-value"><span class="status-dot {{ 'is-ready' if model_ready else 'is-muted' }}"></span></span><span class="stat-label">{{ 'Models ready' if model_ready else 'Manual mode' }}</span></div>
+</section>
+<div class="content-grid">
+  <section class="section-block">
+    <div class="section-title"><div><p class="eyebrow">RECENT RECORDS</p><h2>Sessions</h2></div></div>
+    {% if sessions %}
+    <div class="session-list">
+      {% for item in sessions %}
+      <a class="session-row" href="{{ url_for('session_detail', session_id=item.id) }}">
+        <span class="session-date">{{ item.held_at[:10] }}</span>
+        <span class="session-name">{{ item.course }}<small>Session {{ '%03d'|format(item.id) }}</small></span>
+        <span class="session-count">{{ item.present_count }} <small>present</small></span>
+        <span class="row-arrow" aria-hidden="true">↗</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% else %}<p class="empty-state">No class sessions yet. Start a register to take the first attendance.</p>{% endif %}
+  </section>
+  <aside class="form-panel create-panel">
+    <p class="eyebrow">NEW RECORD</p><h2>Start a session</h2>
+    <form action="{{ url_for('create_session') }}" method="post" class="stack-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label for="course">Class or course</label><input id="course" name="course" maxlength="100" placeholder="e.g. Biology 204" required>
+      <label for="held_at">Date and time <span class="optional">optional</span></label><input id="held_at" name="held_at" type="datetime-local">
+      <button class="button button-primary" type="submit">Create register <span aria-hidden="true">→</span></button>
+    </form>
+    <p class="panel-note">Students without face consent remain on the roster for manual attendance.</p>
+  </aside>
+</div>
+{% endblock %}

@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}{{ class_session.course }}{% endblock %}
+{% block content %}
+<section class="page-heading compact-heading">
+  <div><a class="back-link" href="{{ url_for('index') }}">← All sessions</a><p class="eyebrow">SESSION {{ '%03d'|format(class_session.id) }} / {{ class_session.held_at[:10] }}</p><h1>{{ class_session.course }}</h1><p class="lede">Review every match. Correct any record manually; corrections are kept in the audit log.</p></div>
+</section>
+<div class="content-grid session-grid">
+  <section class="section-block attendance-block">
+    <div class="section-title"><div><p class="eyebrow">CLASS ROSTER</p><h2>Attendance</h2></div><span class="count-tag">{{ roster|length }} students</span></div>
+    {% if roster %}<div class="attendance-list">
+      {% for student in roster %}
+      <article class="attendance-row">
+        <span class="avatar">{{ student.name[:1]|upper }}</span>
+        <span class="roster-name">{{ student.name }}<small>{{ student.student_code }}{% if student.opted_out %} · manual only{% endif %}</small></span>
+        {% if student.status %}<span class="pill {{ 'pill-good' if student.status == 'present' else 'pill-muted' }}">{{ student.status }} · {{ student.source }}</span>{% else %}<span class="pill pill-neutral">Unmarked</span>{% endif %}
+        <form action="{{ url_for('set_attendance', session_id=class_session.id) }}" method="post" class="inline-attendance">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><input type="hidden" name="student_id" value="{{ student.id }}">
+          <select name="status" aria-label="Attendance status for {{ student.name }}">
+            <option value="present" {{ 'selected' if student.status == 'present' }}>Present</option>
+            <option value="absent" {{ 'selected' if student.status == 'absent' }}>Absent</option>
+            <option value="excused" {{ 'selected' if student.status == 'excused' }}>Excused</option>
+          </select>
+          <input class="note-input" name="note" maxlength="240" value="{{ student.note }}" placeholder="Note (optional)" aria-label="Note for {{ student.name }}">
+          <button class="icon-button" type="submit" aria-label="Save attendance for {{ student.name }}" title="Save correction">✓</button>
+        </form>
+      </article>
+      {% endfor %}
+    </div>{% else %}<p class="empty-state">Add students to the roster to start recording attendance.</p>{% endif %}
+  </section>
+  <aside class="side-stack">
+    <section class="form-panel">
+      <p class="eyebrow">OPTIONAL / OPT-IN ONLY</p><h2>Process snapshot</h2>
+      <p class="panel-note">Only opted-in templates are compared. The image is processed in memory and never stored. Matches are provisional until reviewed below.</p>
+      <form action="{{ url_for('recognize_snapshot', session_id=class_session.id) }}" method="post" enctype="multipart/form-data" class="stack-form">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <label for="snapshot">Classroom image</label><input id="snapshot" name="snapshot" type="file" accept="image/jpeg,image/png,image/webp" required>
+        <button class="button button-primary" type="submit">Find opted-in faces <span aria-hidden="true">→</span></button>
+      </form>
+      <p class="fine-print">Uncertain or unmatched faces are not marked present. Confirm each result and correct mistakes in the roster.</p>
+    </section>
+    <section class="privacy-note"><span class="privacy-symbol">◎</span><div><h3>Consent stays in control</h3><p>Opted-out students remain on this manual register. Their face template is deleted when they opt out.</p><a href="{{ url_for('students') }}">Review consent roster →</a></div></section>
+  </aside>
+</div>
+{% endblock %}

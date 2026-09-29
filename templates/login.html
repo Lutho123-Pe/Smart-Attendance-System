@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Teacher sign in{% endblock %}
+{% block content %}
+<section class="login-layout">
+  <div class="login-intro">
+    <p class="eyebrow">CLASSROOM RECORDS / 01</p>
+    <h1>Attendance, with<br><em>care built in.</em></h1>
+    <p class="lede">A private classroom register. Face matching is opt-in; manual attendance is always available.</p>
+    <div class="privacy-line"><span class="status-dot"></span> Images are processed in memory, never archived.</div>
+  </div>
+  <form class="form-panel login-form" action="{{ url_for('login_post') }}" method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <p class="eyebrow">TEACHER ACCESS</p>
+    <h2>Sign in</h2>
+    <label for="password">Teacher password</label>
+    <input id="password" name="password" type="password" autocomplete="current-password" required autofocus>
+    <button class="button button-primary" type="submit">Open register <span aria-hidden="true">→</span></button>
+    <p class="field-help">Set <code>TEACHER_PASSWORD</code> before starting the app.</p>
+  </form>
+</section>
+{% endblock %}
