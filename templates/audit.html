@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Audit log{% endblock %}
+{% block content %}
+<section class="page-heading compact-heading"><div><p class="eyebrow">ACCOUNTABILITY / EVENT HISTORY</p><h1>Audit log</h1><p class="lede">Recent roster changes, corrections, and recognition events. No face images or embeddings are recorded here.</p></div></section>
+<section class="section-block audit-block">
+  <div class="section-title"><div><p class="eyebrow">LATEST {{ entries|length }} EVENTS</p><h2>Activity</h2></div></div>
+  {% if entries %}<div class="audit-list">
+    {% for entry in entries %}<article class="audit-row"><time>{{ entry.created_at[:16].replace('T', ' ') }}</time><span class="audit-action">{{ entry.action.replace('_', ' ') }}</span><span class="audit-target">{{ entry.target }}</span><span class="audit-actor">{{ entry.actor }}</span></article>{% endfor %}
+  </div>{% else %}<p class="empty-state">No activity recorded yet.</p>{% endif %}
+</section>
+{% endblock %}

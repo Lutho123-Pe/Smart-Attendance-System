@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Roster{% endblock %}
+{% block content %}
+<section class="page-heading compact-heading"><div><p class="eyebrow">PEOPLE / CONSENT</p><h1>Student roster</h1><p class="lede">Manual records work for everyone. Face enrollment is a separate, optional choice.</p></div></section>
+<div class="content-grid roster-grid">
+  <section class="section-block">
+    <div class="section-title"><div><p class="eyebrow">{{ students|length }} STUDENTS</p><h2>Enrolled</h2></div></div>
+    {% if students %}<div class="roster-list">
+      {% for student in students %}
+      <article class="roster-row">
+        <span class="avatar">{{ student.name[:1]|upper }}</span>
+        <span class="roster-name">{{ student.name }}<small>{{ student.student_code }}</small></span>
+        {% if student.opted_out %}<span class="pill pill-muted">Opted out</span>
+        {% elif student.consented and student.embedding %}<span class="pill pill-good">Face opt-in</span>
+        {% else %}<span class="pill pill-neutral">Manual only</span>{% endif %}
+        {% if student.consented and student.embedding %}
+        <form action="{{ url_for('opt_out', student_id=student.id) }}" method="post" onsubmit="return confirm('Delete this biometric template and disable face matching for this student?')">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token }}"><button class="text-button danger-text" type="submit">Opt out &amp; delete</button>
+        </form>
+        {% else %}
+        <details class="enroll-details"><summary>{{ 'Renew opt-in' if student.opted_out else 'Enroll face' }}</summary>
+          <form action="{{ url_for('enroll_student', student_id=student.id) }}" method="post" enctype="multipart/form-data" class="enroll-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <label for="photos-{{ student.id }}">1-5 face images</label><input id="photos-{{ student.id }}" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple required>
+            <label class="consent-check"><input type="checkbox" name="consent" value="yes" required><span>Fresh, informed opt-in recorded for face matching.</span></label>
+            <button class="text-button" type="submit">Record opt-in &amp; enroll</button>
+          </form>
+        </details>
+        {% endif %}
+      </article>
+      {% endfor %}
+    </div>{% else %}<p class="empty-state">Your roster is empty. Add students below.</p>{% endif %}
+  </section>
+  <aside class="form-panel create-panel">
+    <p class="eyebrow">ADD TO ROSTER</p><h2>New student</h2>
+    <form action="{{ url_for('add_student') }}" method="post" enctype="multipart/form-data" class="stack-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+      <label for="student_code">Student ID</label><input id="student_code" name="student_code" maxlength="40" required>
+      <label for="name">Full name</label><input id="name" name="name" maxlength="100" required>
+      <label for="photos">Face images <span class="optional">optional · up to 5</span></label>
+      <input id="photos" name="photos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+      <label class="consent-check"><input type="checkbox" name="consent" value="yes"><span>I have shown the student the notice below and recorded their explicit opt-in to biometric processing.</span></label>
+      <p class="consent-disclosure">Face templates are used only to suggest attendance matches for this class. Original images are discarded after processing. The student may opt out at any time; their template is deleted and manual attendance remains available. Templates are stored locally until opt-out or project shutdown.</p>
+      <p class="field-help">Do not upload images without documented permission.</p>
+      <button class="button button-primary" type="submit">Add student <span aria-hidden="true">→</span></button>
+    </form>
+  </aside>
+</div>
+{% endblock %}
